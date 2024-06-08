@@ -16,7 +16,7 @@ const port = process.env.PORT;
 const FAKE_DATA = {
   message: "A message from node",
 };
-const TIME_DELAY = 0;
+const TIME_DELAY = 2000;
 
 app.get("/storeCount", (req, res) => {
   setTimeout(() => {

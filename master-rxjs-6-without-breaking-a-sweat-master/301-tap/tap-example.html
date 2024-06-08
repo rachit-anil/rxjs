@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RxJS Tap Operator Use Case</title>
+    <style>
+        #loading {
+            display: none;
+            font-size: 1.5em;
+            color: blue;
+        }
+        #result {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="loading">Loading...</div>
+    <div id="result"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.6.7/rxjs.umd.min.js"></script>
+    <script>
+        const { of } = rxjs;
+        const { ajax } = rxjs.ajax;
+        const { tap, catchError } = rxjs.operators;
+
+        // Get references to DOM elements
+        const loadingElement = document.getElementById('loading');
+        const resultElement = document.getElementById('result');
+
+        // Function to show the loading spinner
+        const showLoading = () => {
+          console.log("show loader");
+            loadingElement.style.display = 'block';
+        };
+
+        // Function to hide the loading spinner
+        const hideLoading = () => {
+            loadingElement.style.display = 'none';
+        };
+
+        // Function to display the result
+        const displayResult = (data) => {
+            resultElement.textContent = JSON.stringify(data, null, 2);
+        };
+
+        // Simulate an API request
+        const apiCall$ = ajax.getJSON('http://localhost:8080/getJokes').pipe(
+            tap({
+                next: showLoading,      // Hide loading spinner when data is received
+                error: hideLoading,     // Hide loading spinner if an error occurs
+                complete: hideLoading   // Hide loading spinner when request completes
+            }),
+            catchError(error => {
+                console.error('Caught error:', error);
+                return of({ error: 'Failed to fetch data' }); // Return a fallback value
+            })
+        );
+        showLoading();
+        // Subscribe to the API call observable
+        apiCall$.subscribe({
+            next: displayResult,
+            error: err => console.error('Subscription error:', err),
+            complete: () => console.log('Subscription completed')
+        });
+    </script>
+</body>
+</html>
