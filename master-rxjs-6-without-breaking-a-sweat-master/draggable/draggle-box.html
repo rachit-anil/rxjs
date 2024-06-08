@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mouse Hold and Move with RxJS</title>
+    <style>
+        #draggable {
+            width: 200px;
+            height: 200px;
+            background-color: lightblue;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            user-select: none;
+            position: absolute;
+        }
+    </style>
+</head>
+<body>
+    <div id="draggable">Drag me!</div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/rxjs/6.6.7/rxjs.umd.min.js"></script>
+    <script>
+        const { fromEvent } = rxjs;
+        const { mergeMap, takeUntil, map , switchMap} = rxjs.operators;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const draggable = document.getElementById('draggable');
+
+            const mouseDown$ = fromEvent(draggable, 'mousedown');
+            const mouseMove$ = fromEvent(document, 'mousemove');
+            const mouseUp$ = fromEvent(document, 'mouseup');
+
+            mouseDown$.pipe(
+                switchMap(startEvent => {
+                    // Calculate initial offset
+                    const startX = startEvent.clientX - draggable.offsetLeft;
+                    const startY = startEvent.clientY - draggable.offsetTop;
+
+                    return mouseMove$.pipe(
+                        map(moveEvent => ({
+                            x: moveEvent.clientX - startX,
+                            y: moveEvent.clientY - startY
+                        })),
+                        takeUntil(mouseUp$)
+                    );
+                })
+            ).subscribe(position => {
+                draggable.style.left = `${position.x}px`;
+                draggable.style.top = `${position.y}px`;
+            });
+        });
+    </script>
+</body>
+</html>
